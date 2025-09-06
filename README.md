@@ -1,2 +1,11 @@
-# Battle-Ship_Machine-Learning
-A battle ship Machine Learning Program
+The form of battle ship which the AI will train on will take the form of the version on Game Pigeon for IOS devices. With a 10x10 grid, 4 1-Long pieces, 3 2-Long pieces, etc, and the limitation that ships cannot be placed adjacent to one another.
+
+The different AI trained using different reinforment learning methods will train one, on randomly generated boards, and a seperate set of AI will train with the ability to set their own boards.
+
+While battleship may seem at first like a game of complete luck, there are strategies used that can increase the odds of winning. 
+
+This will be a test to see what strategies the AI develops overtime, and how many iterations the AI takes to develop them. The goal is to see whether the AI can develop a set of strategies which I know of, as well as to see what strategies the AI develops on its own, that I dind't know about prior.
+
+The two strategies which I hope to see develop:
+    - Placing long ships on the side. As a sunk ship removes all nodes arround them as well, placing a long ship on the side minimizes the spots that the enemy eliminates by sinking it, making learning more spots open to be hit. Obviously this can only be achieved on the AI that aren't playing on random set.
+    - If placement is  random, there is statistlically optimal way of firing based on Probability Density Functions. 1-length pieces can be anywhere, so they don't change the density at all, however, longer pieces can be placed in more configurations al across the board, leading to higher density probabilitty. This means that certain spots, especially as shots are fired, have a higher chance of containing the longer ships. Of course, if the enemy places all their ships on the side, then it'd be a while of shooting misses at the center until the sides are chosen to be hit, giving the opponent a good opprotunity to start sinking ships and increasing their odds of winning. Of course, it'd be hard for a human to memorize all of this, if I'm playing with this in mind I'm only estimating where the statistically best odds of hitting are. If I sat down I could likely memorize it all, but I doubt that'd be a good use of time. The goal is to see if the random set AI can develop to play to this point optimally, while the non random set AI will also be tested to see if it can reach this optimal level of play, if so, does the AI then optimize to play more ships at the side to throw off this strategy? And how it would respond after and so on.
