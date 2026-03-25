@@ -3,10 +3,41 @@ class Board():
         self.size = size
 
         #0:Empty, 1:Ship, -1:Missed Shot, 2: Hit Ship
-        self.Board = [[0 for i in range(self.size)] for j in range(self.size)]
+        self.grid = [[0 for i in range(self.size)] for j in range(self.size)]
         
         #1:Miss, 2:Hit, 0:Unkown
-        self.EnemyBoardRepresentation = [[0 for i in range(self.size)] for j in range(self.size)]    
+        self.EnemyBoardRepresentation = [[0 for i in range(self.size)] for j in range(self.size)] 
+
+        # Pre-scan Maps
+        self.h_map = [[0 for i in range(size)] for j in range(size)]
+        self.v_map = [[0 for i in range(size)] for j in range(size)]
+        self.recompute_maps()  
+
+    def recompute_maps(self):
+        for r in range(self.size):
+            count = 0
+            # Scan Right to Left for Horizontal
+            for c in range(self.size - 1, -1, -1):
+                if self.grid[r][c] == 0:
+                    count += 1
+                else:
+                    count = 0
+                self.h_map[r][c] = count
+
+        for c in range(self.size):
+            count = 0
+            # Scan Bottom to Top for Vertical
+            for r in range(self.size - 1, -1, -1):
+                if self.grid[r][c] == 0:
+                    count += 1
+                else:
+                    count = 0
+                self.v_map[r][c] = count
+
+    def is_valid_fast(self, r, c, length, horizontal=True):
+        if horizontal:
+            return self.h_map[r][c] >= length
+        return self.v_map[r][c] >= length
 
 class Ship():
     def __init__(self, length):
@@ -17,7 +48,7 @@ class Ship():
 class Player():
     def __init__(self):
         self.board = Board()
-        self.shipplacementboard = self.board.Board
+        self.shipplacementboard = self.board.grid
         self.enemyboard = self.board.EnemyBoardRepresentation
         self.ships = []
         ship_sizes = [(1,4), (2,3), (3,2), (4,1)]
@@ -30,28 +61,22 @@ class Player():
         return [ship for ship in self.ships if not ship.placed]
     
     def availible_positions(self, ship):
-            positions = {"Horizontal-Right":[], "Horizontal-Left":[], "Vertical-Down":[], "Vertical-Up":[]}
-            
-            for r in range(self.board.size):
-                for c in range(self.board.size):
-                    # 0: Right, 1: Left, 2: Down, 3: Up
-                    plots = [[], [], [], []]
+        # We still return a dictionary for compatibility with your previous setup
+        positions = {"Horizontal": [], "Vertical": []}
+        length = ship.length
+        
+        for r in range(self.board.size):
+            for c in range(self.board.size):
+                # Horizontal Check: Just look at one number in the h_map
+                if self.board.h_map[r][c] >= length:
+                    positions["Horizontal"].append((r, c))
                     
-                    for i in range(ship.length):
-                        # Horizontal Right
-                        plots[0].append(self.shipplacementboard[r][c+i] if c+i < self.board.size else -1)
-                        # Horizontal Left
-                        plots[1].append(self.shipplacementboard[r][c-i] if c-i >= 0 else -1)
-                        # Vertical Down
-                        plots[2].append(self.shipplacementboard[r+i][c] if r+i < self.board.size else -1)
-                        # Vertical Up
-                        plots[3].append(self.shipplacementboard[r-i][c] if r-i >= 0 else -1)
+                # Vertical Check: Just look at one number in the v_map
+                if self.board.v_map[r][c] >= length:
+                    positions["Vertical"].append((r, c))
+                    
+        return positions
 
-                    keys = list(positions.keys())
-                    for i in range(4):
-                        if all(val == 0 for val in plots[i]):
-                            positions[keys[i]].append((r, c))
-            return positions
     #Spots Availible on Enemy Board Representation (And Hit Spot)
     def availible_firing_positions(self):
             positions = []
