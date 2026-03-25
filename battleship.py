@@ -40,9 +40,10 @@ class Board():
         return self.v_map[r][c] >= length
 
 class Ship():
-    def __init__(self, length):
+    def __init__(self, length, ship_id):
         self.length = length
         self.pieces_hit = 0
+        self.ship_id = ship_id
         self.placed = False
 
 class Player():
@@ -51,10 +52,14 @@ class Player():
         self.shipplacementboard = self.board.grid
         self.enemyboard = self.board.EnemyBoardRepresentation
         self.ships = []
+
+        #(Size, Count)
         ship_sizes = [(1,4), (2,3), (3,2), (4,1)]
         for size, count in ship_sizes:
             for i in range(count):
-                self.ships.append(Ship(size))
+                ship_id = f"Ship_{size}_{ship_counter}"
+                self.ships.append(Ship(size, ship_id))
+                ship_counter += 1
     
     #Ships Availible (And Pick Ship)
     def availible_ships(self):
@@ -77,6 +82,32 @@ class Player():
                     
         return positions
 
+    def all_legal_positions(self):
+        legal_moves = []
+        ships_to_place = self.availible_ships()
+
+        for ship in ships_to_place:
+            # Re-use your fast map-based logic
+            positions = self.availible_positions(ship)
+            
+            for r, c in positions["Horizontal"]:
+                legal_moves.append({
+                    "ship": ship, 
+                    "row": r, 
+                    "col": c, 
+                    "direction": "Horizontal"
+                })
+                
+            for r, c in positions["Vertical"]:
+                legal_moves.append({
+                    "ship": ship, 
+                    "row": r, 
+                    "col": c, 
+                    "direction": "Vertical"
+                })
+                
+        return legal_moves
+
     #Spots Availible on Enemy Board Representation (And Hit Spot)
     def availible_firing_positions(self):
             positions = []
@@ -93,6 +124,8 @@ class BattleshipGame():
         self.Player2 = Player()
     
     #Ship Placing Phase for player 1 and 2
+    def placement(self):
+
     #Game Start
         #While won = false:
             #If turn is even, player 1 goes, else player 2
