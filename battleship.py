@@ -27,58 +27,39 @@ class Player():
     
     #Ships Availible (And Pick Ship)
     def availible_ships(self):
-        return self.ships
+        return [ship for ship in self.ships if not ship.placed]
     
     def availible_positions(self, ship):
-        #Takes in ship object shows availible positions for said ship
-        positions = {"Vertical-Left":[],"Vertical-Right":[],"Horizontal-Down":[],"Horizontal-Up":[]}
-        for row in self.shipplacementboard:
-            for column in row:
-                plots = [[],[],[],[]]
-                #vertical left
-                for i in range(ship.length):
-                    if column + i <= self.board.size -1:
-                        plots[0].append(self.shipplacementboard[row][column + i])
-                    else:
-                        plots[0].append(-1)
-                #vertical right
-                for i in range(ship.length):
-                    if column - i >= 0:
-                        plots[1].append(self.shipplacementboard[row][column - i])
-                    else:
-                        plots[1].append(-1)
-                #horizontal down
-                for i in range(ship.length):
-                    if row + i <= self.board.size -1:
-                        plots[2].append(self.shipplacementboard[row + i][column])
-                    else:
-                        plots[2].append(-1)
-                #horizontal up
-                for i in range(ship.length):
-                    if row - i >= 0:
-                        plots[2].append(self.shipplacementboard[row - 1][column])
-                    else:
-                        plots[2].append(-1)
-                for i in range(len(plots)):
-                    if all(numbers == 0 for numbers in plots[list]):
-                        if i == 0:
-                            positions["Vertical-Left"].append((row,column))
-                        elif i == 1:
-                            positions["Vertical-Right"].append((row,column))
-                        elif i == 2:
-                            positions["Horizontal-Down"].append((row,column))
-                        elif i == 3:
-                            positions["Horizontal-Up"].append((row,column))
-        return positions
+            positions = {"Horizontal-Right":[], "Horizontal-Left":[], "Vertical-Down":[], "Vertical-Up":[]}
+            
+            for r in range(self.board.size):
+                for c in range(self.board.size):
+                    # 0: Right, 1: Left, 2: Down, 3: Up
+                    plots = [[], [], [], []]
+                    
+                    for i in range(ship.length):
+                        # Horizontal Right
+                        plots[0].append(self.shipplacementboard[r][c+i] if c+i < self.board.size else -1)
+                        # Horizontal Left
+                        plots[1].append(self.shipplacementboard[r][c-i] if c-i >= 0 else -1)
+                        # Vertical Down
+                        plots[2].append(self.shipplacementboard[r+i][c] if r+i < self.board.size else -1)
+                        # Vertical Up
+                        plots[3].append(self.shipplacementboard[r-i][c] if r-i >= 0 else -1)
+
+                    keys = list(positions.keys())
+                    for i in range(4):
+                        if all(val == 0 for val in plots[i]):
+                            positions[keys[i]].append((r, c))
+            return positions
     #Spots Availible on Enemy Board Representation (And Hit Spot)
     def availible_firing_positions(self):
-        positions = []
-        for row in self.enemyboard:
-            for column in row:
-                if self.enemyboard[row][column] == 0:
-                    positions.append((row,column))
-
-        return positions
+            positions = []
+            for r in range(self.board.size):
+                for c in range(self.board.size):
+                    if self.enemyboard[r][c] == 0:
+                        positions.append((r, c))
+            return positions
 
 class BattleshipGame():
     def __init__(self):
