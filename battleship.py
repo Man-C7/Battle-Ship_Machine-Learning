@@ -1,3 +1,4 @@
+import random
 class Board():
     def __init__(self, size=10):
         self.size = size
@@ -55,6 +56,7 @@ class Player():
 
         #(Size, Count)
         ship_sizes = [(1,4), (2,3), (3,2), (4,1)]
+        ship_counter = 0
         for size, count in ship_sizes:
             for i in range(count):
                 ship_id = f"Ship_{size}_{ship_counter}"
@@ -116,6 +118,73 @@ class Player():
                     if self.enemyboard[r][c] == 0:
                         positions.append((r, c))
             return positions
+    
+    def place_ship(self, ship, r, c, direction):
+        for i in range(ship.length):
+            nr, nc = (r, c + i) if direction == 'Horizontal' else (r + i, c)
+            # Store the  ship object in the grid cell
+            self.board.grid[nr][nc] = ship 
+        
+        ship.placed = True
+        self.board.recompute_maps()
+
+
+    def place_ships_randomly(self):
+        #Sorted Ships
+        ships_to_place = sorted(self.ships, key=lambda x: x.length, reverse=True)
+
+        for ship in ships_to_place:
+            #Get all currently legal moves for this specific ship
+            options = []
+            positions = self.availible_positions(ship)
+
+            for r, c in positions["Horizontal"]:
+                options.append((r, c, "Horizontal"))
+            for r, c in positions["Vertical"]:
+                options.append((r, c, "Vertical"))
+            
+            if not options:
+                # If we get stuck (rare on 10x10), reset and try again
+                self.reset_placements()
+                return self.place_ships_randomly()
+            # Pick a move at random
+            r, c, direction = random.choice(options)
+            
+            # Place it
+            self.place_ship(ship, r, c, direction)
+            
+    def reset_placements(self):
+        self.board.grid = [[0 for _ in range(self.board.size)] for _ in range(self.board.size)]
+
+        for ship in self.ships:
+            ship.placed = False
+
+        self.board.recompute_maps()
+    
+    def fire_shot(self, r, c, opponent):
+        target = opponent.board.grid[r][c]
+        
+        if isinstance(target, Ship):
+            target.pieces_hit += 1
+            
+            # Update the opponent's grid to reflect a hit (2)
+            # This 'destroys' the Ship reference in that cell so it can't be hit twice
+            opponent.board.grid[r][c] = 2 
+            
+            # Update your own memory of the enemy board
+            self.enemyboard[r][c] = 2 
+            
+            if target.pieces_hit == target.length:
+                return "SUNK", target.ship_id
+            return "HIT", target.ship_id
+        
+        else:
+            # Mark the opponent's grid as a Miss
+            opponent.board.grid[r][c] = -1
+            
+            # Update own memory
+            self.enemyboard[r][c] = 1
+            return "MISS", None
 
 class BattleshipGame():
     def __init__(self):
@@ -124,7 +193,6 @@ class BattleshipGame():
         self.Player2 = Player()
     
     #Ship Placing Phase for player 1 and 2
-    def placement(self):
 
     #Game Start
         #While won = false:
@@ -133,4 +201,4 @@ class BattleshipGame():
                 #All Markings Added
                 #If Hit, player goes again
                     #If Ship Hit has all pieces hit, surround squares get marked as missed shots, and also gets to go again
-                #If Miss, turn+=1
+                #If Miss, turn+= 1
